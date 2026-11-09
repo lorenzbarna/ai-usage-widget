@@ -1,0 +1,13 @@
+{
+  "KPlugin": {
+    "Id": "aiusage.PROVIDER",
+    "Name": "NAME Usage",
+    "Description": "NAME plan usage: 5h + 7d bars with pace",
+    "Icon": "utilities-system-monitor",
+    "Authors": [{ "Name": "Lorenz Barna" }],
+    "License": "MIT",
+    "Version": "1.0"
+  },
+  "KPackageStructure": "Plasma/Applet",
+  "X-Plasma-API-Minimum-Version": "6.0"
+}
