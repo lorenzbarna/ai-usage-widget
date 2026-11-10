@@ -7,6 +7,7 @@ refresh tokens. An expired token shows as an error until the CLI is used again.
 
 Output: {"provider", "at", "plan", "session": Window|null, "week": Window|null} or {..., "error", "retry_after"?}
   Window = {"pct": 0-100 used, "reset": unix time it resets, "len": window length in seconds}
+  null = the limit exists but no window is running; key left out = the plan has no such limit
 """
 import json, os, sys, time, urllib.request
 from datetime import datetime
@@ -23,12 +24,17 @@ def claude():
     c = json.load(open(H("~/.claude/.credentials.json")))["claudeAiOauth"]
     d = get("https://api.anthropic.com/api/oauth/usage",
             {"Authorization": f"Bearer {c['accessToken']}", "anthropic-beta": "oauth-2025-04-20"})
-    # A window is null when it isn't running (e.g. no 5h session open yet): the widget shows an empty bar.
+    # A window without resets_at isn't running (e.g. no 5h session open yet): None, the widget shows an empty bar.
     w = lambda x, ln: {"pct": x["utilization"], "reset": int(datetime.fromisoformat(x["resets_at"]).timestamp()), "len": ln} \
         if x and x.get("resets_at") else None
     tier = c.get("rateLimitTier", "").rsplit("_", 1)[-1]
     plan = f"{c.get('subscriptionType', '').capitalize()} {tier if tier.endswith('x') else ''}".strip()
-    return {"plan": plan, "session": w(d.get("five_hour"), 5 * 3600), "week": w(d.get("seven_day"), 7 * 86400)}
+    out = {"plan": plan, "week": w(d.get("seven_day"), 7 * 86400)}
+    # five_hour is null when the plan has no 5h limit (verified Ultra accounts since Oct 2026): leave the key
+    # out so the widget hides the row instead of showing "not started".
+    if d.get("five_hour") is not None:
+        out["session"] = w(d["five_hour"], 5 * 3600)
+    return out
 
 
 def codex():
@@ -43,7 +49,8 @@ def codex():
 # ── Adding a provider ─────────────────────────────────────────────────────────────────────────────
 # 1. Write a function like the ones above: read the provider CLI's local login, call its usage
 #    endpoint read-only (find it by watching what the CLI requests), return
-#    {"plan": str, "session": Window|None, "week": Window|None}. Raise on failure; the loop below
+#    {"plan": str, "session": Window|None, "week": Window|None}; leave a key out if the plan has no such
+#    limit. Raise on failure; the loop below
 #    turns exceptions into {"error"}, and HTTP 401/429 into a retry delay.
 #    Don't refresh tokens yourself. Windows that don't fit session/week: add your own keys and
 #    show them in that provider's widget.

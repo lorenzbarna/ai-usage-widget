@@ -9,6 +9,7 @@ import org.kde.kirigami as Kirigami
 // TEMPLATE for a new provider widget. Copy this folder to widgets/<provider>/, then fix every TODO below
 // and in metadata.json. The UI expects `ai-usage <provider>` to print
 //   {"at": unix, "plan": str, "session": Window|null, "week": Window|null}  with Window = {pct, reset, len}
+//   A window key left out = the plan has no such limit: its row is hidden.
 // If the provider's limits don't fit "5h + 7d" (other window lengths, credits, per-model caps), change the
 // Repeater model and labels below: each widget owns its UI, nothing is shared.
 PlasmoidItem {
@@ -115,7 +116,8 @@ PlasmoidItem {
             }
 
             Repeater {
-                model: [["5h", root.session], ["7d", root.week]]
+                // A window the script leaves out is a limit the plan doesn't have (e.g. no 5h limit on Ultra): no row
+                model: [["5h", root.session, "session"], ["7d", root.week, "week"]].filter(r => !root.usage.at || r[2] in root.usage)
                 delegate: ColumnLayout {
                     required property var modelData
                     readonly property var w: modelData[1]

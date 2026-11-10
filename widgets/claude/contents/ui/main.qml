@@ -111,7 +111,8 @@ PlasmoidItem {
             }
 
             Repeater {
-                model: [["5h", root.session], ["7d", root.week]]
+                // A window the script leaves out is a limit the plan doesn't have (e.g. no 5h limit on Ultra): no row
+                model: [["5h", root.session, "session"], ["7d", root.week, "week"]].filter(r => !root.usage.at || r[2] in root.usage)
                 delegate: ColumnLayout {
                     required property var modelData
                     readonly property var w: modelData[1]

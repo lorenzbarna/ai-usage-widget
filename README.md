@@ -21,6 +21,8 @@ would be, and a pace verdict ("on pace · ~60% at reset" / "out Thu 14:20 · 6h 
 The installer restarts the Plasma shell (Plasma caches widget QML), so panels and desktop blink once.
 Then right-click the desktop → *Add Widgets* → "Claude Usage" / "Codex Usage".
 
+Plans without a 5-hour limit (Claude Ultra since Oct 2026, once the account is verified) show only the 7-day bar.
+
 Widgets refresh every 5 min. Click one, or its ↻ button, to refresh now.
 
 Uninstall:
